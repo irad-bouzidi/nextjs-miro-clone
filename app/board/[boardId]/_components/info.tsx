@@ -1,6 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+import { toast } from "sonner";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Menu } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -35,10 +38,20 @@ export const Info = ({
 }: InfoProps) => {
   const { onOpen } = useRenameModal();
 
-  const { data } = useQuery({
+  const router = useRouter();
+
+  const { data, isSuccess } = useQuery({
     queryKey: ["board", boardId],
     queryFn: () => getBoard(boardId),
   });
+
+  // The board was deleted (possibly by a teammate) while it was open.
+  useEffect(() => {
+    if (isSuccess && data === null) {
+      toast.error("This board was deleted");
+      router.replace("/");
+    }
+  }, [isSuccess, data, router]);
 
   if (!data) return <InfoSkeleton />;
 

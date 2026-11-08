@@ -4,6 +4,7 @@ import { auth, currentUser } from "@clerk/nextjs";
 import type { Board } from "@prisma/client";
 
 import { db } from "@/lib/db";
+import { publishBoardEvent } from "@/lib/realtime";
 
 const images = [
   "/placeholders/1.svg",
@@ -144,15 +145,27 @@ export async function createBoard(args: { orgId: string; title: string }) {
     },
   });
 
+  await publishBoardEvent({
+    type: "board.created",
+    orgId: board.orgId,
+    boardId: board.id,
+  });
+
   return board.id;
 }
 
 export async function removeBoard(args: { id: string }) {
   requireUserId();
-  await getAuthorizedBoard(args.id);
+  const board = await getAuthorizedBoard(args.id);
 
   // Favorites are removed by the onDelete: Cascade relation.
   await db.board.delete({ where: { id: args.id } });
+
+  await publishBoardEvent({
+    type: "board.deleted",
+    orgId: board.orgId,
+    boardId: board.id,
+  });
 }
 
 export async function updateBoard(args: { id: string; title: string }) {
@@ -175,6 +188,12 @@ export async function updateBoard(args: { id: string; title: string }) {
     data: { title },
   });
 
+  await publishBoardEvent({
+    type: "board.updated",
+    orgId: board.orgId,
+    boardId: board.id,
+  });
+
   return toDTO(board);
 }
 
@@ -194,6 +213,12 @@ export async function favoriteBoard(args: { id: string; orgId: string }) {
     data: { userId, boardId: board.id, orgId: board.orgId },
   });
 
+  await publishBoardEvent({
+    type: "board.favorited",
+    orgId: board.orgId,
+    boardId: board.id,
+  });
+
   return toDTO(board);
 }
 
@@ -208,6 +233,12 @@ export async function unfavoriteBoard(args: { id: string }) {
   if (!count) {
     throw new Error("Favorited board not found");
   }
+
+  await publishBoardEvent({
+    type: "board.unfavorited",
+    orgId: board.orgId,
+    boardId: board.id,
+  });
 
   return toDTO(board);
 }

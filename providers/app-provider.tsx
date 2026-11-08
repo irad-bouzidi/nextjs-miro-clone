@@ -5,6 +5,7 @@ import { ClerkLoaded, ClerkLoading, ClerkProvider, SignedIn } from "@clerk/nextj
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { Loading } from "@/components/auth/loading";
+import { RealtimeProvider } from "@/providers/realtime-provider";
 
 interface AppProviderProps {
   children: React.ReactNode;
@@ -27,6 +28,7 @@ export const AppProvider = ({
         </ClerkLoading>
         <ClerkLoaded>
           <SignedIn>
+            <RealtimeProvider />
             {children}
           </SignedIn>
         </ClerkLoaded>

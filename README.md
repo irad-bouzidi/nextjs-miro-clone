@@ -61,3 +61,17 @@ npm run db:migrate  # applies prisma/migrations
 ```shell
 npm run dev
 ```
+
+### Realtime updates
+
+Board changes (create, rename, delete, favorite) are pushed to every open tab in the
+same organization instantly:
+
+1. Server actions call `pg_notify('board_events', …)` after each change (`lib/realtime.ts`).
+2. Each Next.js server keeps one Postgres connection that `LISTEN`s on that channel.
+3. `/api/events` streams matching events to the browser as Server-Sent Events.
+4. `providers/realtime-provider.tsx` refetches the affected TanStack Query data.
+
+Because events go through Postgres, this works across multiple app instances.
+Note: on serverless hosts with short function timeouts the SSE stream is cut
+periodically; the browser reconnects automatically and refetches.
