@@ -1,11 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { ReactNode } from "react";
-import { ClientSideSuspense } from "@liveblocks/react";
-import { LiveMap, LiveList, LiveObject } from "@liveblocks/client";
 
-import { Layer } from "@/types/canvas";
-import { RoomProvider } from "@/liveblocks.config";
+import { RoomProvider } from "@/lib/collab/react";
 
 interface RoomProps { 
   children: ReactNode
@@ -19,22 +17,21 @@ export const Room = ({
   fallback,
 }: RoomProps) => {
   return (
-    <RoomProvider 
-      id={roomId} 
-      initialPresence={{
-        cursor: null,
-        selection: [],
-        pencilDraft: null,
-        penColor: null,
-      }}
-      initialStorage={{
-        layers: new LiveMap<string, LiveObject<Layer>>(),
-        layerIds: new LiveList(),
-      }}
+    <RoomProvider
+      id={roomId}
+      fallback={fallback}
+      denied={
+        <div className="h-full w-full flex flex-col items-center justify-center gap-y-4">
+          <p className="text-lg font-semibold">
+            This board doesn&apos;t exist or you don&apos;t have access to it.
+          </p>
+          <Link href="/" className="text-blue-600 underline">
+            Back to boards
+          </Link>
+        </div>
+      }
     >
-      <ClientSideSuspense fallback={fallback}>
-        {() => children}
-      </ClientSideSuspense>
+      {children}
     </RoomProvider>
   );
 };

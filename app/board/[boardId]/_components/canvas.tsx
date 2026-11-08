@@ -2,7 +2,6 @@
 
 import { nanoid } from "nanoid";
 import { useCallback, useMemo, useState, useEffect } from "react";
-import { LiveObject } from "@liveblocks/client";
 
 import { 
   useHistory, 
@@ -12,7 +11,7 @@ import {
   useStorage,
   useOthersMapped,
   useSelf,
-} from "@/liveblocks.config";
+} from "@/lib/collab/react";
 import { 
   colorToCss,
   connectionIdToColor, 
@@ -26,6 +25,7 @@ import {
   CanvasMode, 
   CanvasState, 
   Color,
+  Layer,
   LayerType,
   Point,
   Side,
@@ -84,14 +84,14 @@ export const Canvas = ({
 
     const liveLayerIds = storage.get("layerIds");
     const layerId = nanoid();
-    const layer = new LiveObject({
+    const layer = {
       type: layerType,
       x: position.x,
       y: position.y,
       height: 100,
       width: 100,
       fill: lastUsedColor,
-    });
+    } as Layer;
 
     liveLayerIds.push(layerId);
     liveLayers.set(layerId, layer);
@@ -221,10 +221,10 @@ export const Canvas = ({
     const id = nanoid();
     liveLayers.set(
       id,
-      new LiveObject(penPointsToPathLayer(
+      penPointsToPathLayer(
         pencilDraft,
         lastUsedColor,
-      )),
+      ),
     );
 
     const liveLayerIds = storage.get("layerIds");

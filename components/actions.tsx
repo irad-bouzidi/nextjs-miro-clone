@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { api } from "@/convex/_generated/api";
+import { removeBoard } from "@/actions/board";
 import { useApiMutation } from "@/hooks/use-api-mutation";
 import { Button } from "@/components/ui/button";
 import { useRenameModal } from "@/store/use-rename-modal";
@@ -33,7 +33,7 @@ export const Actions = ({
   title,
 }: ActionsProps) => {
   const { onOpen } = useRenameModal();
-  const { mutate, pending } = useApiMutation(api.board.remove);
+  const { mutate, pending } = useApiMutation(removeBoard);
 
   const onCopyLink = () => {
     navigator.clipboard.writeText(

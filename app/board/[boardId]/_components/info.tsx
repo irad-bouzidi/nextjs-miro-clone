@@ -1,17 +1,19 @@
 "use client";
 
+import { useEffect } from "react";
+import { toast } from "sonner";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Menu } from "lucide-react";
-import { useQuery } from "convex/react";
+import { useQuery } from "@tanstack/react-query";
 import { Poppins } from "next/font/google";
 
 import { cn } from "@/lib/utils";
 import { Hint } from "@/components/hint";
-import { api } from "@/convex/_generated/api";
+import { getBoard } from "@/actions/board";
 import { Actions } from "@/components/actions";
 import { Button } from "@/components/ui/button";
-import { Id } from "@/convex/_generated/dataModel";
 import { useRenameModal } from "@/store/use-rename-modal";
 
 interface InfoProps {
@@ -36,9 +38,20 @@ export const Info = ({
 }: InfoProps) => {
   const { onOpen } = useRenameModal();
 
-  const data = useQuery(api.board.get, {
-    id: boardId as Id<"boards">,
+  const router = useRouter();
+
+  const { data, isSuccess } = useQuery({
+    queryKey: ["board", boardId],
+    queryFn: () => getBoard(boardId),
   });
+
+  // The board was deleted (possibly by a teammate) while it was open.
+  useEffect(() => {
+    if (isSuccess && data === null) {
+      toast.error("This board was deleted");
+      router.replace("/");
+    }
+  }, [isSuccess, data, router]);
 
   if (!data) return <InfoSkeleton />;
 
@@ -67,14 +80,14 @@ export const Info = ({
         <Button
           variant="board"
           className="text-base font-normal px-2"
-          onClick={() => onOpen(data._id, data.title)}
+          onClick={() => onOpen(data.id, data.title)}
         >
           {data.title}
         </Button>
       </Hint>
       <TabSeparator />
       <Actions
-        id={data._id}
+        id={data.id}
         title={data.title}
         side="bottom"
         sideOffset={10}

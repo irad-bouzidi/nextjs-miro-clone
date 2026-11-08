@@ -2,7 +2,6 @@
 
 ![Copy of Copy of Copy of Copy of Fullstack Twitter Clone (11)](https://github.com/AntonioErdeljac/next14-miro-clone/assets/23248726/1f973316-0bf4-4fa0-b014-40bb9edc1942)
 
-
 This is a repository for a Build a Real-Time Miro Clone With Nextjs, React, Tailwind (2024) youtube video.
 
 [VIDEO TUTORIAL](https://youtu.be/ADJKbuayubE)
@@ -15,9 +14,9 @@ Features:
 - 🎨 Coloring system
 - ↩️ Undo & Redo functionality
 - ⌨️ Keyboard shortcuts
-- 🤝 Real-time collaboration 
-- 💾 Real-time database 
-- 🔐 Auth, organisations and invites 
+- 🤝 Real-time collaboration
+- 💾 Real-time database
+- 🔐 Auth, organisations and invites
 - ⭐️ Favoriting functionality
 - 🌐 Next.js 14 framework
 - 💅 TailwindCSS & ShadcnUI styling
@@ -40,24 +39,74 @@ npm i
 
 ### Setup .env file
 
+Copy `.env.example` to `.env` and fill in the keys:
 
 ```js
-CONVEX_DEPLOYMENT=
-NEXT_PUBLIC_CONVEX_URL=
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/miro_clone?schema=public"
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
 CLERK_SECRET_KEY=
-LIVEBLOCKS_SECRET_KEY=
+COLLAB_SECRET=      # optional, falls back to CLERK_SECRET_KEY
 ```
 
-### Setup Convex
+### Run everything with Docker (recommended)
+
+With Clerk keys in `.env`:
 
 ```shell
-npx convex dev
+npm run docker:up     # docker compose up -d --build  -> http://localhost:3000
+npm run docker:logs   # follow app logs
+npm run docker:down   # stop (open boards are saved first)
+```
 
+This starts Postgres and the app (Next.js + realtime + Yjs, one container).
+Migrations run automatically on startup. Inside compose the app talks to
+`postgres:5432`, so the `DATABASE_URL` in `.env` is only used for host runs.
+`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is baked in at build time: rebuild
+(`npm run docker:up`) after changing it.
+
+### Setup the database (Postgres + Prisma)
+
+```shell
+npm run db:up       # starts Postgres via docker compose (host port 5432)
+npm run db:migrate  # applies prisma/migrations
 ```
 
 ### Start the app
 
 ```shell
-npm run dev
+npm run dev                 # tsx server.ts (Next.js + collaboration WebSocket, one process)
+
+npm run build && npm start  # production
 ```
+
+Everything runs in a single Node process on one port (`server.ts`): the Next.js
+app, the Server-Sent Events stream and the Yjs WebSocket. No external realtime
+service (Convex / Liveblocks) is needed. It must run on a host that keeps a
+Node process alive (VPS, Docker, Railway, Fly, ...), not serverless functions.
+
+### Realtime updates
+
+Board changes (create, rename, delete, favorite) are pushed to every open tab in the
+same organization instantly:
+
+1. Server actions call `pg_notify('board_events', …)` after each change (`lib/realtime.ts`).
+2. Each Next.js server keeps one Postgres connection that `LISTEN`s on that channel.
+3. `/api/events` streams matching events to the browser as Server-Sent Events.
+4. `providers/realtime-provider.tsx` refetches the affected TanStack Query data.
+
+Because events go through Postgres, this works across multiple app instances.
+Note: on serverless hosts with short function timeouts the SSE stream is cut
+periodically; the browser reconnects automatically and refetches.
+
+### Collaborative canvas (Yjs)
+
+The board canvas is synced with [Yjs](https://yjs.dev), hosted by this app:
+
+- `server.ts` serves Next.js and handles WebSocket upgrades on `/collab`
+  (other upgrades, like dev hot reload, go to Next).
+- `app/api/collab-auth` checks Clerk + board org and returns a 60s signed ticket.
+- `lib/collab/server.ts` keeps one Y.Doc per open board, relays updates and
+  presence (cursors, selection, pencil drafts), and saves the document to
+  `Board.content` in Postgres (debounced, and on shutdown).
+- `lib/collab/react.tsx` provides `useStorage`, `useMutation`, `useSelf`,
+  `useOthers*`, `useHistory`, ... (same shape as the Liveblocks hooks it replaces).

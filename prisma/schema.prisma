@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Board {
+  id         String   @id @default(cuid())
+  title      String
+  orgId      String
+  authorId   String
+  authorName String
+  imageUrl   String
+  /// Yjs document (encoded state) holding the canvas layers.
+  content    Bytes?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  favorites UserFavorite[]
+
+  @@index([orgId, createdAt])
+}
+
+model UserFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  orgId     String
+  boardId   String
+  createdAt DateTime @default(now())
+
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, boardId])
+  @@index([userId, orgId, createdAt])
+}

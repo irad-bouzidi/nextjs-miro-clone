@@ -1,4 +1,4 @@
-import { useSelf, useMutation } from "@/liveblocks.config";
+import { useSelf, useMutation } from "@/lib/collab/react";
 
 export const useDeleteLayers = () => {
   const selection = useSelf((me) => me.presence.selection);

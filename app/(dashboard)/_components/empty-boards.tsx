@@ -5,14 +5,14 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useOrganization } from "@clerk/nextjs";
 
-import { api } from "@/convex/_generated/api";
+import { createBoard } from "@/actions/board";
 import { Button } from "@/components/ui/button";
 import { useApiMutation } from "@/hooks/use-api-mutation";
 
 export const EmptyBoards = () => {
   const router = useRouter();
   const { organization } = useOrganization();
-  const { mutate, pending } = useApiMutation(api.board.create);
+  const { mutate, pending } = useApiMutation(createBoard);
 
   const onClick = () => {
     if (!organization) return;

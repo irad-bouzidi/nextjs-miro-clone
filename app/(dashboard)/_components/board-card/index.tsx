@@ -7,7 +7,7 @@ import { useAuth } from "@clerk/nextjs";
 import { MoreHorizontal } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
-import { api } from "@/convex/_generated/api";
+import { favoriteBoard, unfavoriteBoard } from "@/actions/board";
 import { Actions } from "@/components/actions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useApiMutation } from "@/hooks/use-api-mutation";
@@ -46,11 +46,11 @@ export const BoardCard = ({
   const {
     mutate: onFavorite,
     pending: pendingFavorite,
-  } = useApiMutation(api.board.favorite);
+  } = useApiMutation(favoriteBoard);
   const {
     mutate: onUnfavorite,
     pending: pendingUnfavorite,
-  } = useApiMutation(api.board.unfavorite);
+  } = useApiMutation(unfavoriteBoard);
 
   const toggleFavorite = () => {
     if (isFavorite) {

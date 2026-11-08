@@ -3,7 +3,7 @@
 import { memo } from "react";
 import { MousePointer2 } from "lucide-react";
 
-import { useOther } from "@/liveblocks.config";
+import { useOther } from "@/lib/collab/react";
 import { connectionIdToColor } from "@/lib/utils";
 
 interface CursorProps {
