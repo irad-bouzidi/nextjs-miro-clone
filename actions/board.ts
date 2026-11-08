@@ -31,7 +31,7 @@ export type BoardDTO = {
 
 export type BoardWithFavorite = BoardDTO & { isFavorite: boolean };
 
-const toDTO = (board: Board): BoardDTO => ({
+const toDTO = (board: Omit<Board, "content">): BoardDTO => ({
   id: board.id,
   title: board.title,
   orgId: board.orgId,
