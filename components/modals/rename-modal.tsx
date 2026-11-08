@@ -16,13 +16,13 @@ import { useRenameModal } from "@/store/use-rename-modal";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useApiMutation } from "@/hooks/use-api-mutation";
-import { api } from "@/convex/_generated/api";
+import { updateBoard } from "@/actions/board";
 
 export const RenameModal = () => {
   const { 
     mutate, 
     pending
-  } = useApiMutation(api.board.update);
+  } = useApiMutation(updateBoard);
 
   const {
     isOpen,

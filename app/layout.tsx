@@ -4,7 +4,7 @@ import "./globals.css";
 import { Suspense } from "react";
 
 import { Toaster } from "@/components/ui/sonner";
-import { ConvexClientProvider } from "@/providers/convex-client-provider";
+import { AppProvider } from "@/providers/app-provider";
 import { ModalProvider } from "@/providers/modal-provider";
 import { Loading } from "@/components/auth/loading";
 
@@ -24,11 +24,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Suspense fallback={<Loading />}>
-          <ConvexClientProvider>
+          <AppProvider>
             <Toaster />
             <ModalProvider />
             {children}
-          </ConvexClientProvider>
+          </AppProvider>
         </Suspense>
       </body>
     </html>

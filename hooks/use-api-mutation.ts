@@ -1,20 +1,28 @@
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useQueryClient } from "@tanstack/react-query";
 
-export const useApiMutation = (mutationFunction: any) => {
+/**
+ * Wraps a server action, tracks its pending state and refreshes
+ * board data afterwards (replaces Convex's reactive queries).
+ */
+export const useApiMutation = <TArgs, TResult>(
+  mutationFunction: (args: TArgs) => Promise<TResult>,
+) => {
   const [pending, setPending] = useState(false);
-  const apiMutation = useMutation(mutationFunction);
+  const queryClient = useQueryClient();
 
-  const mutate = (payload: any) => {
+  const mutate = async (payload: TArgs) => {
     setPending(true);
-    return apiMutation(payload)
-      .finally(() => setPending(false))
-      .then((result) => {
-        return result;
-      })
-      .catch ((error) => {
-        throw error;
-      });
+    try {
+      const result = await mutationFunction(payload);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["boards"] }),
+        queryClient.invalidateQueries({ queryKey: ["board"] }),
+      ]);
+      return result;
+    } finally {
+      setPending(false);
+    }
   };
 
   return {

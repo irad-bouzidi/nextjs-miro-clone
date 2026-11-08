@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
-import { api } from "@/convex/_generated/api";
+import { createBoard } from "@/actions/board";
 import { useApiMutation } from "@/hooks/use-api-mutation";
 
 interface NewBoardButtonProps {
@@ -18,7 +18,7 @@ export const NewBoardButton = ({
   disabled,
 }: NewBoardButtonProps) => {
   const router = useRouter();
-  const { mutate, pending } = useApiMutation(api.board.create);
+  const { mutate, pending } = useApiMutation(createBoard);
 
   const onClick = () => {
     mutate({

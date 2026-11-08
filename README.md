@@ -40,20 +40,20 @@ npm i
 
 ### Setup .env file
 
+Copy `.env.example` to `.env` and fill in the keys:
 
 ```js
-CONVEX_DEPLOYMENT=
-NEXT_PUBLIC_CONVEX_URL=
+DATABASE_URL="postgresql://postgres:postgres@localhost:5433/miro_clone?schema=public"
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
 CLERK_SECRET_KEY=
 LIVEBLOCKS_SECRET_KEY=
 ```
 
-### Setup Convex
+### Setup the database (Postgres + Prisma)
 
 ```shell
-npx convex dev
-
+npm run db:up       # starts Postgres via docker compose (host port 5433)
+npm run db:migrate  # applies prisma/migrations
 ```
 
 ### Start the app

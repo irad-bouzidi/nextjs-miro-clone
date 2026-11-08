@@ -1,8 +1,8 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useQuery } from "@tanstack/react-query";
 
-import { api } from "@/convex/_generated/api";
+import { getBoards } from "@/actions/board";
 
 import { BoardCard } from "./board-card";
 import { EmptySearch } from "./empty-search";
@@ -22,9 +22,9 @@ export const BoardList = ({
   orgId,
   query,
 }: BoardListProps) => {
-  const data = useQuery(api.boards.get, { 
-    orgId,
-    ...query,
+  const { data } = useQuery({
+    queryKey: ["boards", orgId, query.search ?? "", query.favorites ?? ""],
+    queryFn: () => getBoards({ orgId, ...query }),
   });
 
   if (data === undefined) {
@@ -65,13 +65,13 @@ export const BoardList = ({
         <NewBoardButton orgId={orgId} />
         {data?.map((board) => (
           <BoardCard
-            key={board._id}
-            id={board._id}
+            key={board.id}
+            id={board.id}
             title={board.title}
             imageUrl={board.imageUrl}
             authorId={board.authorId}
             authorName={board.authorName}
-            createdAt={board._creationTime}
+            createdAt={board.createdAt}
             orgId={board.orgId}
             isFavorite={board.isFavorite}
           />
