@@ -10,8 +10,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: miro_clone
     ports:
-      # Host port 5433 (5432 is already used on this machine).
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
