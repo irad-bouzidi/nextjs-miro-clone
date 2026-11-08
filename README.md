@@ -48,6 +48,22 @@ CLERK_SECRET_KEY=
 COLLAB_SECRET=      # optional, falls back to CLERK_SECRET_KEY
 ```
 
+### Run everything with Docker (recommended)
+
+With Clerk keys in `.env`:
+
+```shell
+npm run docker:up     # docker compose up -d --build  -> http://localhost:3000
+npm run docker:logs   # follow app logs
+npm run docker:down   # stop (open boards are saved first)
+```
+
+This starts Postgres and the app (Next.js + realtime + Yjs, one container).
+Migrations run automatically on startup. Inside compose the app talks to
+`postgres:5432`, so the `DATABASE_URL` in `.env` is only used for host runs.
+`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is baked in at build time: rebuild
+(`npm run docker:up`) after changing it.
+
 ### Setup the database (Postgres + Prisma)
 
 ```shell

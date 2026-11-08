@@ -1,3 +1,6 @@
+# Run everything:      docker compose up -d --build   -> http://localhost:3000
+# Only the database:   docker compose up -d postgres  (for `npm run dev` on the host)
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -7,9 +10,36 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: miro_clone
     ports:
+      # Host port 5433 (5432 is already used on this machine).
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d miro_clone"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      args:
+        # Read from .env; baked into the browser bundle at build time.
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:?set it in .env}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Inside the compose network the database is "postgres:5432".
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/miro_clone?schema=public
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Time to flush open boards to Postgres on `docker compose down`.
+    stop_grace_period: 20s
 
 volumes:
   pgdata:
